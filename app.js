@@ -202,9 +202,17 @@
   }
 
   async function loadLocations() {
-    const locations = await apiFetch('/locations');
+    const data = await apiFetch('/locations');
+    const locations = Array.isArray(data) ? data : data?.locations ?? [];
     locationsById = new Map(locations.map((loc) => [loc.id, loc]));
     return locations;
+  }
+
+  function registerLocationFromResponse(data) {
+    const location = data?.location;
+    if (location?.id != null) {
+      locationsById.set(location.id, location);
+    }
   }
 
   function enrichItems(items) {
@@ -226,11 +234,15 @@
     if (locationId == null) {
       return enrichItems(await apiFetch('/items'));
     }
-    return enrichItems(await apiFetch('/locations/' + locationId + '/items'));
+    const data = await apiFetch('/locations/' + locationId + '/items');
+    registerLocationFromResponse(data);
+    return enrichItems(data.items ?? []);
   }
 
   async function fetchSearchResults(query, scope, locationId) {
-    const results = enrichItems(await apiFetch('/items/search?q=' + encodeURIComponent(query)));
+    const results = enrichItems(
+      await apiFetch('/items/search?q=' + encodeURIComponent(query))
+    );
     if (scope === 'location' && locationId != null) {
       return filterByLocation(results, locationId);
     }
@@ -272,10 +284,10 @@
 
   async function loadPage(locationId) {
     currentLocationId = locationId;
-    updateTitle();
     updateSearchScopeSelect();
-    updateParentButton();
     await refreshGrid();
+    updateTitle();
+    updateParentButton();
   }
 
   function onParentClick() {
