@@ -1,0 +1,7 @@
+# https://<name>.<account>.workers.dev
+name = "home-inventory"
+compatibility_date = "2026-06-15"
+
+[assets]
+directory = "."
+not_found_handling = "single-page-application"

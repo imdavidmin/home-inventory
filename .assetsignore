@@ -1,0 +1,6 @@
+.github/
+.git/
+api-spec.yaml
+wrangler.toml
+_redirects
+.assetsignore
