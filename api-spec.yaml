@@ -1,0 +1,266 @@
+openapi: 3.0.0
+
+info:
+  title: Home Inventory API
+  version: 1.0.0
+  description: Simple inventory system for locations and items backed by Cloudflare D1 SQLite
+
+servers:
+  - url: https://your-worker.workers.dev
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+
+  /locations:
+    get:
+      summary: List locations
+      responses:
+        "200":
+          description: List of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    label:
+                      type: string
+
+    post:
+      summary: Create location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - label
+              properties:
+                label:
+                  type: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  label:
+                    type: string
+        "400":
+          description: Invalid input
+
+  /locations/{id}:
+    put:
+      summary: Update location
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - label
+              properties:
+                label:
+                  type: string
+      responses:
+        "200":
+          description: Updated
+        "400":
+          description: Invalid input
+        "404":
+          description: Not found
+
+    delete:
+      summary: Delete location
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+        "400":
+          description: Invalid id
+        "404":
+          description: Not found
+        "409":
+          description: Location contains items
+
+  /locations/{id}/items:
+    get:
+      summary: Items in a location
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Items in location
+
+  /items:
+    get:
+      summary: List items
+      responses:
+        "200":
+          description: List of items
+
+    post:
+      summary: Create item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - label
+              properties:
+                label:
+                  type: string
+                location_id:
+                  type: integer
+                tags:
+                  type: string
+                notes:
+                  type: string
+                quantity:
+                  type: integer
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Invalid input
+
+  /items/search:
+    get:
+      summary: Search items
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+
+  /items/{id}:
+    get:
+      summary: Get item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Item found
+        "404":
+          description: Not found
+
+    put:
+      summary: Update item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - label
+              properties:
+                label:
+                  type: string
+                location_id:
+                  type: integer
+                tags:
+                  type: string
+                notes:
+                  type: string
+                quantity:
+                  type: integer
+      responses:
+        "200":
+          description: Updated
+        "400":
+          description: Invalid input
+        "404":
+          description: Not found
+
+    delete:
+      summary: Delete item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+        "404":
+          description: Not found
+
+components:
+  schemas:
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        location_id:
+          type: integer
+        tags:
+          type: string
+        notes:
+          type: string
+        quantity:
+          type: integer
