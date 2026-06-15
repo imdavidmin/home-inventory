@@ -23,7 +23,7 @@ npm run dev
 
 ```bash
 cd backend
-wrangler dev
+wrangler dev --config wrangler.toml
 ```
 
 Set `window.API_ENDPOINT` in `frontend/public/config.js` if the API runs on a non-default URL.
@@ -35,6 +35,6 @@ Both workers deploy from the same GitHub repo via Cloudflare Workers Builds (no 
 | Worker | Root directory | Build command | Deploy command |
 |--------|----------------|---------------|----------------|
 | `home-inventory` | `frontend` | `npm ci && npm run build` | `npx wrangler deploy --assets ./dist` |
-| `home-inventory-api` | `backend` | *(empty)* | `npx wrangler deploy` |
+| `home-inventory-api` | `backend` | *(empty)* | `npx wrangler deploy --config wrangler.toml` |
 
 Pushes to the connected branch trigger a build for each worker.
