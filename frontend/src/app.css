@@ -120,7 +120,14 @@ main.app-main {
   color: var(--color-danger);
 }
 
-:global(.tag-cell) {
+.cell-link {
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tag-cell {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -128,7 +135,7 @@ main.app-main {
   padding: 0.25rem 0;
 }
 
-:global(.tag-pill) {
+.tag-pill {
   display: inline-block;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
@@ -137,13 +144,6 @@ main.app-main {
   font-size: 0.8rem;
   line-height: 1.3;
   white-space: nowrap;
-}
-
-:global(.cell-link) {
-  color: var(--color-accent);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
 .form-field {

@@ -2,7 +2,7 @@ import type { ColDef, ICellRendererParams, ValueFormatterParams } from 'ag-grid-
 import type { ItemRow } from './types';
 import { formatQuantity } from './tags';
 
-export function tagsCellRenderer(params: ICellRendererParams<ItemRow>): HTMLElement {
+function tagsCellRenderer(params: ICellRendererParams<ItemRow>): HTMLElement {
   const container = document.createElement('div');
   container.className = 'tag-cell';
 
