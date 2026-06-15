@@ -34,12 +34,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    label:
-                      type: string
+                  $ref: "#/components/schemas/Location"
 
     post:
       summary: Create location
@@ -54,20 +49,20 @@ paths:
               properties:
                 label:
                   type: string
+                parent_id:
+                  type: integer
+                  nullable: true
       responses:
         "201":
           description: Created
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  label:
-                    type: string
+                $ref: "#/components/schemas/Location"
         "400":
           description: Invalid input
+        "404":
+          description: Parent location not found
 
   /locations/{id}:
     put:
@@ -89,9 +84,16 @@ paths:
               properties:
                 label:
                   type: string
+                parent_id:
+                  type: integer
+                  nullable: true
       responses:
         "200":
           description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
         "400":
           description: Invalid input
         "404":
@@ -127,6 +129,17 @@ paths:
       responses:
         "200":
           description: Items in location
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    $ref: "#/components/schemas/Location"
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Item"
 
   /items:
     get:
@@ -248,6 +261,9 @@ components:
           type: integer
         label:
           type: string
+        parent_id:
+          type: integer
+          description: Omitted when the location has no parent
 
     Item:
       type: object

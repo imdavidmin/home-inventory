@@ -8,6 +8,7 @@ const CORS = {
     NOT_FOUND: "not found",
     LABEL_REQUIRED: "label required",
     INVALID_LOCATION_ID: "invalid location_id",
+    INVALID_PARENT_ID: "invalid parent_id",
     LOCATION_CONTAINS_ITEMS: "location contains items",
   };
   
@@ -48,8 +49,28 @@ const CORS = {
     NotFound: () => error(MESSAGES.NOT_FOUND, 404),
     LabelRequired: () => error(MESSAGES.LABEL_REQUIRED, 400),
     InvalidLocationId: () => error(MESSAGES.INVALID_LOCATION_ID, 400),
+    InvalidParentId: () => error(MESSAGES.INVALID_PARENT_ID, 400),
     LocationContainsItems: () => error(MESSAGES.LOCATION_CONTAINS_ITEMS, 409),
   };
+
+  const formatLocation = ({ id, label, parent_id }) => {
+    const loc = { id, label };
+    if (parent_id != null) loc.parent_id = parent_id;
+    return loc;
+  };
+
+  const parseParentId = (value) => {
+    if (value == null) return null;
+    const id = Validators.id(value);
+    return id ?? null;
+  };
+
+  async function validateParentId(env, parentId, selfId = null) {
+    if (!parentId) return null;
+    if (parentId === selfId) return ERRORS.InvalidParentId();
+    const parent = await db.first(env, "SELECT id FROM locations WHERE id=?", parentId);
+    return parent ? null : ERRORS.NotFound();
+  }
   
   const body = async (req) => {
     try {
@@ -63,16 +84,33 @@ const CORS = {
   }
   
   async function listLocations(req, env) {
-    const r = await db.all(env, "SELECT id,label FROM locations ORDER BY label");
-    return json(r.results);
+    const r = await db.all(
+      env,
+      "SELECT id,label,parent_id FROM locations ORDER BY label",
+    );
+    return json(r.results.map(formatLocation));
   }
   
   async function createLocation(req, env) {
     const b = await body(req);
     const label = Validators.label(b?.label);
     if (!label) return ERRORS.LabelRequired();
-    const r = await db.run(env, "INSERT INTO locations(label) VALUES(?)", label);
-    return json({ id: r.meta.last_row_id, label }, 201);
+
+    const parentId = parseParentId(b?.parent_id);
+    if (b?.parent_id != null && !parentId) return ERRORS.InvalidParentId();
+    const parentError = await validateParentId(env, parentId);
+    if (parentError) return parentError;
+
+    const r = await db.run(
+      env,
+      "INSERT INTO locations(label,parent_id) VALUES(?,?)",
+      label,
+      parentId,
+    );
+    return json(
+      formatLocation({ id: r.meta.last_row_id, label, parent_id: parentId }),
+      201,
+    );
   }
   
   async function updateLocation(req, env, id) {
@@ -81,14 +119,31 @@ const CORS = {
     const b = await body(req);
     const label = Validators.label(b?.label);
     if (!label) return ERRORS.LabelRequired();
+
+    const existing = await db.first(
+      env,
+      "SELECT parent_id FROM locations WHERE id=?",
+      id,
+    );
+    if (!existing) return ERRORS.NotFound();
+
+    let parentId = existing.parent_id;
+    if (b && "parent_id" in b) {
+      parentId = parseParentId(b.parent_id);
+      if (b.parent_id != null && !parentId) return ERRORS.InvalidParentId();
+      const parentError = await validateParentId(env, parentId, id);
+      if (parentError) return parentError;
+    }
+
     const r = await db.run(
       env,
-      "UPDATE locations SET label=? WHERE id=?",
+      "UPDATE locations SET label=?,parent_id=? WHERE id=?",
       label,
+      parentId,
       id,
     );
     if (!db.changed(r)) return ERRORS.NotFound();
-    return json({ id, label });
+    return json(formatLocation({ id, label, parent_id: parentId }));
   }
   
   async function deleteLocation(req, env, id) {
@@ -237,7 +292,10 @@ const CORS = {
       id,
     );
   
-    return json({ location, items: items.results });
+    return json({
+      location: formatLocation(location),
+      items: items.results,
+    });
   }
   
   const routes = [
