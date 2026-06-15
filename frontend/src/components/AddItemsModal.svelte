@@ -25,7 +25,7 @@
     One item per line: <code>label, location</code> or
     <code>label, location, quantity</code>. Quantity defaults to 1.
     Wrap labels or locations in double quotes when they contain commas, e.g.
-    <code>"wrench, 29mm", Kitchen</code>.
+    <code>"wrench, 29mm", Kitchen</code>. Location names match case-insensitively.
     {#if $currentLocationLabel}
       A single word adds to <strong>{$currentLocationLabel}</strong>.
     {:else}

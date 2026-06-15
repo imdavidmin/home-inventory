@@ -134,15 +134,13 @@ export async function updateLocation(
   return apiRequest<Location>('PUT', '/locations/' + id, locationToApiBody(payload));
 }
 
-function normalizeLabel(label: string): string {
-  return label.trim().toLowerCase();
+function labelsMatch(input: string, stored: string): boolean {
+  return input.trim().localeCompare(stored.trim(), undefined, { sensitivity: 'base' }) === 0;
 }
 
 export function resolveLocationByLabel(label: string): number {
-  const normalized = normalizeLabel(label);
-  const matches = [...get(locations).values()].filter(
-    (loc) => normalizeLabel(loc.label) === normalized
-  );
+  const trimmed = label.trim();
+  const matches = [...get(locations).values()].filter((loc) => labelsMatch(trimmed, loc.label));
   if (matches.length === 1) return matches[0].id;
   if (matches.length > 1) throw new Error('Ambiguous location "' + label + '"');
   throw new Error('Unknown location "' + label + '"');
