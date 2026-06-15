@@ -47,7 +47,7 @@
     }
 
     render(params) {
-      const tags = normalizeTags(params.value ?? params.data?.tags);
+      const tags = params.data?.tags ?? [];
       this.eGui.replaceChildren();
       for (const tag of tags) {
         const pill = document.createElement('span');
@@ -92,7 +92,7 @@
       filter: 'agTextColumnFilter',
       cellRenderer: TagsCellRenderer,
       autoHeight: true,
-      valueGetter: (params) => normalizeTags(params.data?.tags).join(', '),
+      valueGetter: (params) => (params.data?.tags ?? []).join(', '),
     },
     { field: 'notes', headerName: 'Notes', flex: 1, minWidth: 160, filter: 'agTextColumnFilter' },
   ];
@@ -220,6 +220,7 @@
       const location = locationsById.get(item.location_id);
       return {
         ...item,
+        tags: normalizeTags(item.tags),
         location_label: location ? location.label : item.location_id ?? '',
       };
     });
