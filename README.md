@@ -34,7 +34,7 @@ Both workers deploy from the same GitHub repo via Cloudflare Workers Builds (no 
 
 | Worker | Root directory | Build command | Deploy command |
 |--------|----------------|---------------|----------------|
-| `home-inventory` | `frontend` | `npm ci && npm run build` | `npx wrangler deploy --assets ./dist` |
+| `home-inventory` | `frontend` | `npm ci && npm run build` | `npx wrangler deploy --config wrangler.toml` |
 | `home-inventory-api` | `backend` | *(empty)* | `npx wrangler deploy --config wrangler.toml` |
 
 Pushes to the connected branch trigger a build for each worker.
