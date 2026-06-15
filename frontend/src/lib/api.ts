@@ -1,0 +1,173 @@
+import { get } from 'svelte/store';
+import type { Item, ItemRow, Location, LocationItemsResponse, NewItemPayload } from './types';
+import { normalizeTags, tagsToApiString } from './tags';
+import { locations } from './stores';
+
+function apiBase(): string {
+  return window.API_ENDPOINT.replace(/\/$/, '');
+}
+
+async function apiRequest<T>(
+  method: string,
+  path: string,
+  body?: Record<string, unknown>
+): Promise<T | null> {
+  const options: RequestInit = { method, headers: {} };
+  if (body !== undefined) {
+    (options.headers as Record<string, string>)['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(body);
+  }
+  const res = await fetch(apiBase() + path, options);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(res.status + ' ' + res.statusText + (text ? ': ' + text : ''));
+  }
+  const text = await res.text();
+  return text ? (JSON.parse(text) as T) : null;
+}
+
+export async function loadLocations(): Promise<Map<number, Location>> {
+  const list = (await apiRequest<Location[]>('GET', '/locations')) ?? [];
+  const map = new Map(list.map((loc) => [loc.id, loc]));
+  locations.set(map);
+  return map;
+}
+
+export function itemToPayload(
+  item: ItemRow,
+  overrides?: Partial<NewItemPayload>
+): NewItemPayload {
+  return {
+    label: item.label,
+    location_id: item.location_id,
+    quantity: item.quantity ?? 1,
+    tags: item.tags,
+    notes: item.notes,
+    ...overrides,
+  };
+}
+
+export function enrichItems(items: Item[]): ItemRow[] {
+  const locs = get(locations);
+  return items.map((item) => {
+    const location = locs.get(item.location_id);
+    const row = item as ItemRow;
+    return {
+      ...item,
+      tags: normalizeTags(item.tags),
+      location_label:
+        location?.label ?? row.location_label ?? String(item.location_id ?? ''),
+    };
+  });
+}
+
+export async function fetchAllItems(): Promise<ItemRow[]> {
+  return enrichItems((await apiRequest<Item[]>('GET', '/items')) ?? []);
+}
+
+export async function fetchLocationItems(locationId: number): Promise<ItemRow[]> {
+  const data = await apiRequest<LocationItemsResponse>(
+    'GET',
+    '/locations/' + locationId + '/items'
+  );
+  if (data?.location?.id != null) {
+    locations.update((m) => {
+      const next = new Map(m);
+      next.set(data.location.id, data.location);
+      return next;
+    });
+  }
+  return enrichItems(data?.items ?? []);
+}
+
+export async function searchItems(query: string): Promise<ItemRow[]> {
+  return enrichItems(
+    (await apiRequest<Item[]>('GET', '/items/search?q=' + encodeURIComponent(query))) ?? []
+  );
+}
+
+function itemToApiBody(item: NewItemPayload): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    label: item.label,
+    location_id: item.location_id,
+    quantity: item.quantity ?? 1,
+  };
+  const tags = tagsToApiString(item.tags);
+  if (tags !== undefined) body.tags = tags;
+  if (item.notes != null && item.notes !== '') body.notes = item.notes;
+  return body;
+}
+
+export async function createItem(item: NewItemPayload): Promise<void> {
+  await apiRequest('POST', '/items', itemToApiBody(item));
+}
+
+export async function updateItem(id: number, item: NewItemPayload): Promise<void> {
+  await apiRequest('PUT', '/items/' + id, itemToApiBody(item));
+}
+
+export async function deleteItem(id: number): Promise<void> {
+  await apiRequest('DELETE', '/items/' + id);
+}
+
+export async function createLocation(label: string): Promise<Location | null> {
+  return apiRequest<Location>('POST', '/locations', { label: label.trim() });
+}
+
+function normalizeLabel(label: string): string {
+  return label.trim().toLowerCase();
+}
+
+export function resolveLocationByLabel(label: string): number {
+  const normalized = normalizeLabel(label);
+  const matches = [...get(locations).values()].filter(
+    (loc) => normalizeLabel(loc.label) === normalized
+  );
+  if (matches.length === 1) return matches[0].id;
+  if (matches.length > 1) throw new Error('Ambiguous location "' + label + '"');
+  throw new Error('Unknown location "' + label + '"');
+}
+
+export function parseBulkLines(
+  text: string,
+  currentLocationId: number | null
+): NewItemPayload[] {
+  const lines = text.split(/\n/).map((line) => line.trim()).filter(Boolean);
+  const parsed: NewItemPayload[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const lineNum = i + 1;
+    const parts = lines[i].split(',').map((part) => part.trim());
+
+    if (parts.length === 1 && currentLocationId != null) {
+      if (!parts[0]) throw new Error('Line ' + lineNum + ': missing label');
+      parsed.push({ label: parts[0], location_id: currentLocationId, quantity: 1 });
+      continue;
+    }
+
+    if (parts.length < 2 || parts.length > 3) {
+      throw new Error('Line ' + lineNum + ': expected label, location [, quantity]');
+    }
+
+    const itemLabel = parts[0];
+    const locationLabel = parts[1];
+    if (!itemLabel) throw new Error('Line ' + lineNum + ': missing label');
+    if (!locationLabel) throw new Error('Line ' + lineNum + ': missing location');
+
+    let quantity = 1;
+    if (parts.length === 3) {
+      quantity = Number(parts[2]);
+      if (!Number.isInteger(quantity) || quantity < 0) {
+        throw new Error('Line ' + lineNum + ': invalid quantity');
+      }
+    }
+
+    parsed.push({
+      label: itemLabel,
+      location_id: resolveLocationByLabel(locationLabel),
+      quantity,
+    });
+  }
+
+  return parsed;
+}

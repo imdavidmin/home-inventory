@@ -1,0 +1,9 @@
+# https://home-inventory-api.<account>.workers.dev
+name = "home-inventory-api"
+main = "index.js"
+compatibility_date = "2026-06-15"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "home-inventory"
+database_id = "71ab45c3-4ed9-4392-84dc-459905849378"
