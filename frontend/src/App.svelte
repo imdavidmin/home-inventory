@@ -8,9 +8,12 @@
   import EditItemModal from './components/EditItemModal.svelte';
   import MoveItemModal from './components/MoveItemModal.svelte';
   import NewLocationModal from './components/NewLocationModal.svelte';
+  import EditLocationModal from './components/EditLocationModal.svelte';
   import {
     activeModal,
     closeModal,
+    currentLocation,
+    currentLocationId,
     openModal,
     parentLocationId,
     rowData,
@@ -23,6 +26,7 @@
     bootstrapApp,
     createLocationAndGo,
     deleteSelectedItem,
+    editCurrentLocation,
     editSelectedItem,
     moveSelectedItem,
     navigateToLocation,
@@ -87,8 +91,18 @@
 
 <NewLocationModal
   open={$activeModal === 'newLocation'}
+  locations={$sortedLocations}
+  defaultParentId={$currentLocationId}
   onclose={closeModal}
   onsubmit={createLocationAndGo}
+/>
+
+<EditLocationModal
+  open={$activeModal === 'editLocation'}
+  location={$currentLocation}
+  locations={$sortedLocations}
+  onclose={closeModal}
+  onsubmit={editCurrentLocation}
 />
 
 <FabMenu onadditems={() => openModal('add')} onnewlocation={() => openModal('newLocation')} />

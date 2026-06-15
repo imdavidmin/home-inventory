@@ -5,52 +5,51 @@
 
   interface Props {
     open?: boolean;
+    location?: Location | null;
     locations?: Location[];
-    defaultParentId?: number | null;
     onsubmit?: (payload: LocationPayload) => void;
     onclose?: () => void;
   }
 
-  let {
-    open = false,
-    locations = [],
-    defaultParentId = null,
-    onsubmit,
-    onclose,
-  }: Props = $props();
+  let { open = false, location = null, locations = [], onsubmit, onclose }: Props = $props();
 
   let label = $state('');
   let parentId = $state<number | ''>('');
 
+  const parentOptions = $derived(
+    location ? locations.filter((loc) => loc.id !== location.id) : locations
+  );
+
   $effect(() => {
-    if (open) {
-      label = '';
-      parentId = defaultParentId ?? '';
+    if (open && location) {
+      label = location.label ?? '';
+      parentId = location.parent_id ?? '';
     }
   });
 
   function handleSubmit() {
     if (!label.trim()) return;
-    const payload: LocationPayload = { label: label.trim() };
-    if (parentId !== '') payload.parent_id = Number(parentId);
-    onsubmit?.(payload);
+    onsubmit?.({
+      label: label.trim(),
+      parent_id: parentId === '' ? null : Number(parentId),
+    });
   }
 </script>
 
-<Modal {open} title="New location" {onclose}>
+<Modal {open} title="Edit location" {onclose}>
   <label class="form-field">
     Label
     <input type="text" bind:value={label} required />
   </label>
   <LocationSelect
-    {locations}
+    locations={parentOptions}
     bind:value={parentId}
     label="Parent location"
-    id="new-location-parent"
+    id="edit-location-parent"
     nullable
   />
   {#snippet actions()}
     <button type="button" onclick={onclose}>Cancel</button>
-    <button type="button" onclick={handleSubmit}>Create</button>
+    <button type="button" onclick={handleSubmit}>Save</button>
   {/snippet}
 </Modal>

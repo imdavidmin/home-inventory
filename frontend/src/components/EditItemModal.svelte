@@ -30,8 +30,7 @@
     }
   });
 
-  function handleSubmit(event: Event) {
-    event.preventDefault();
+  function handleSubmit() {
     if (!label.trim() || locationId === '') return;
     onsubmit?.({
       label: label.trim(),
@@ -44,27 +43,25 @@
 </script>
 
 <Modal {open} title="Edit item" {onclose}>
-  <form class="form" onsubmit={handleSubmit}>
-    <label class="form-field">
-      Label
-      <input type="text" bind:value={label} required />
-    </label>
-    <LocationSelect {locations} bind:value={locationId} label="Location" id="edit-location" />
-    <label class="form-field">
-      Quantity
-      <input type="number" min="0" bind:value={quantity} />
-    </label>
-    <label class="form-field">
-      Tags
-      <input type="text" bind:value={tags} placeholder="tools, kitchen" />
-    </label>
-    <label class="form-field">
-      Notes
-      <textarea rows="3" bind:value={notes}></textarea>
-    </label>
-    {#snippet actions()}
-      <button type="button" onclick={onclose}>Cancel</button>
-      <button type="submit">Save</button>
-    {/snippet}
-  </form>
+  <label class="form-field">
+    Label
+    <input type="text" bind:value={label} required />
+  </label>
+  <LocationSelect {locations} bind:value={locationId} label="Location" id="edit-location" />
+  <label class="form-field">
+    Quantity
+    <input type="number" min="0" bind:value={quantity} />
+  </label>
+  <label class="form-field">
+    Tags
+    <input type="text" bind:value={tags} placeholder="tools, kitchen" />
+  </label>
+  <label class="form-field">
+    Notes
+    <textarea rows="3" bind:value={notes}></textarea>
+  </label>
+  {#snippet actions()}
+    <button type="button" onclick={onclose}>Cancel</button>
+    <button type="button" onclick={handleSubmit}>Save</button>
+  {/snippet}
 </Modal>

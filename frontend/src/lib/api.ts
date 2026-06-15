@@ -1,5 +1,12 @@
 import { get } from 'svelte/store';
-import type { Item, ItemRow, Location, LocationItemsResponse, NewItemPayload } from './types';
+import type {
+  Item,
+  ItemRow,
+  Location,
+  LocationItemsResponse,
+  LocationPayload,
+  NewItemPayload,
+} from './types';
 import { normalizeTags, tagsToApiString } from './tags';
 import { locations } from './stores';
 
@@ -110,8 +117,21 @@ export async function deleteItem(id: number): Promise<void> {
   await apiRequest('DELETE', '/items/' + id);
 }
 
-export async function createLocation(label: string): Promise<Location | null> {
-  return apiRequest<Location>('POST', '/locations', { label: label.trim() });
+function locationToApiBody(payload: LocationPayload): Record<string, unknown> {
+  const body: Record<string, unknown> = { label: payload.label.trim() };
+  if ('parent_id' in payload) body.parent_id = payload.parent_id;
+  return body;
+}
+
+export async function createLocation(payload: LocationPayload): Promise<Location | null> {
+  return apiRequest<Location>('POST', '/locations', locationToApiBody(payload));
+}
+
+export async function updateLocation(
+  id: number,
+  payload: LocationPayload
+): Promise<Location | null> {
+  return apiRequest<Location>('PUT', '/locations/' + id, locationToApiBody(payload));
 }
 
 function normalizeLabel(label: string): string {

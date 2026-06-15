@@ -42,6 +42,11 @@ export const currentLocationLabel = derived([locations, currentLocationId], ([$l
   return $locs.get($id)?.label ?? null;
 });
 
+export const currentLocation = derived([locations, currentLocationId], ([$locs, $id]) => {
+  if ($id == null) return null;
+  return $locs.get($id) ?? null;
+});
+
 export function setStatus(message: string, error = false) {
   status.set({ message, error });
 }

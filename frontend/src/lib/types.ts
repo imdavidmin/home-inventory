@@ -33,7 +33,12 @@ export interface LocationItemsResponse {
 
 export type SearchScope = 'location' | 'all';
 
-export type ModalName = 'add' | 'edit' | 'move' | 'newLocation' | null;
+export interface LocationPayload {
+  label: string;
+  parent_id?: number | null;
+}
+
+export type ModalName = 'add' | 'edit' | 'move' | 'newLocation' | 'editLocation' | null;
 
 declare global {
   interface Window {

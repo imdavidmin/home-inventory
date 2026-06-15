@@ -3,6 +3,7 @@ import {
   createItem,
   createLocation,
   deleteItem,
+  updateLocation,
   fetchAllItems,
   fetchLocationItems,
   itemToPayload,
@@ -21,7 +22,7 @@ import {
   selectedItem,
   setStatus,
 } from './stores';
-import type { ItemRow, NewItemPayload, SearchScope } from './types';
+import type { ItemRow, LocationPayload, NewItemPayload, SearchScope } from './types';
 import { errorMessage, plural } from './utils';
 
 function effectiveScope(locationId: number | null, scope: SearchScope): SearchScope {
@@ -222,14 +223,14 @@ export async function deleteSelectedItem(): Promise<void> {
   );
 }
 
-export async function createLocationAndGo(label: string): Promise<void> {
+export async function createLocationAndGo(payload: LocationPayload): Promise<void> {
   closeModal();
   setStatus('Creating location…');
 
   try {
-    const created = await createLocation(label);
+    const created = await createLocation(payload);
     await loadLocations();
-    setStatus('Created location "' + label + '"');
+    setStatus('Created location "' + payload.label + '"');
     if (created?.id != null) {
       navigateToLocation(created.id);
     } else {
@@ -238,4 +239,16 @@ export async function createLocationAndGo(label: string): Promise<void> {
   } catch (err) {
     setStatus(errorMessage(err, 'Failed to create location'), true);
   }
+}
+
+export async function editCurrentLocation(payload: LocationPayload): Promise<void> {
+  const id = get(currentLocationId);
+  if (id == null) return;
+
+  await withMutation(
+    'Saving…',
+    () => updateLocation(id, payload),
+    'Location updated',
+    'Failed to update location'
+  );
 }

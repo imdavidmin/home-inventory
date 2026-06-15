@@ -31,7 +31,19 @@
     >
       ↑ Parent
     </button>
-    <h1>{$pageTitle}</h1>
+    <div class="title-row">
+      <h1>{$pageTitle}</h1>
+      {#if $currentLocationId != null}
+        <button
+          type="button"
+          class="btn-icon"
+          title="Edit location"
+          onclick={() => openModal('editLocation')}
+        >
+          ✏️
+        </button>
+      {/if}
+    </div>
   </div>
 
   <div class="toolbar-row search-row">

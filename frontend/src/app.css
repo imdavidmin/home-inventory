@@ -41,10 +41,22 @@ main.app-main {
   flex-wrap: wrap;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .toolbar h1 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
+}
+
+.toolbar button.btn-icon {
+  padding: 0.2rem 0.45rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .search-row {
