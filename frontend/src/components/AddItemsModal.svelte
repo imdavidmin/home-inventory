@@ -24,6 +24,8 @@
   <p class="hint">
     One item per line: <code>label, location</code> or
     <code>label, location, quantity</code>. Quantity defaults to 1.
+    Wrap labels or locations in double quotes when they contain commas, e.g.
+    <code>"wrench, 29mm", Kitchen</code>.
     {#if $currentLocationLabel}
       A single word adds to <strong>{$currentLocationLabel}</strong>.
     {:else}
@@ -32,7 +34,11 @@
   </p>
   <label class="form-field">
     Items
-    <textarea bind:value={text} rows="8" placeholder="29mm wrench, Gousto box&#10;hammer, Kitchen, 2"></textarea>
+    <textarea
+      bind:value={text}
+      rows="8"
+      placeholder={'29mm wrench, Gousto box\n"metric wrench, 29mm", Kitchen, 2'}
+    ></textarea>
   </label>
   {#snippet actions()}
     <button type="button" onclick={onclose}>Cancel</button>

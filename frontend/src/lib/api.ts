@@ -148,6 +148,42 @@ export function resolveLocationByLabel(label: string): number {
   throw new Error('Unknown location "' + label + '"');
 }
 
+export function splitBulkFields(line: string): string[] {
+  const fields: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ',') {
+      fields.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+
+  if (inQuotes) {
+    throw new Error('unclosed quote');
+  }
+
+  fields.push(current.trim());
+  return fields;
+}
+
 export function parseBulkLines(
   text: string,
   currentLocationId: number | null
@@ -157,7 +193,12 @@ export function parseBulkLines(
 
   for (let i = 0; i < lines.length; i++) {
     const lineNum = i + 1;
-    const parts = lines[i].split(',').map((part) => part.trim());
+    let parts: string[];
+    try {
+      parts = splitBulkFields(lines[i]);
+    } catch {
+      throw new Error('Line ' + lineNum + ': unclosed quote in label or location');
+    }
 
     if (parts.length === 1 && currentLocationId != null) {
       if (!parts[0]) throw new Error('Line ' + lineNum + ': missing label');
