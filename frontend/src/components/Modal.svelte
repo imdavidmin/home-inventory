@@ -1,15 +1,23 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import type { Snippet } from "svelte";
 
   interface Props {
     open?: boolean;
     title?: string;
+    wide?: boolean;
     onclose?: () => void;
     children?: Snippet;
     actions?: Snippet;
   }
 
-  let { open = false, title = '', onclose, children, actions }: Props = $props();
+  const {
+    open = false,
+    title = "",
+    wide = false,
+    onclose,
+    children,
+    actions,
+  }: Props = $props();
 
   function backdropClick(event: MouseEvent) {
     if (event.target === event.currentTarget) onclose?.();
@@ -19,7 +27,7 @@
 {#if open}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
   <div class="backdrop" onclick={backdropClick} role="presentation">
-    <div class="modal" role="dialog" aria-labelledby="modal-title">
+    <div class="modal" class:wide role="dialog" aria-labelledby="modal-title">
       <h2 id="modal-title">{title}</h2>
       {@render children?.()}
       <div class="actions">
@@ -48,6 +56,9 @@
     max-height: 90vh;
     overflow: auto;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  }
+  .modal.wide {
+    width: min(100%, 52rem);
   }
   .modal h2 {
     margin: 0 0 0.75rem;

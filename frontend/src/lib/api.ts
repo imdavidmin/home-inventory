@@ -1,5 +1,6 @@
 import { get } from 'svelte/store';
 import type {
+  BulkPreviewRow,
   Item,
   ItemRow,
   Location,
@@ -138,9 +139,22 @@ function labelsMatch(input: string, stored: string): boolean {
   return input.trim().localeCompare(stored.trim(), undefined, { sensitivity: 'base' }) === 0;
 }
 
+function parseLocationId(value: string): number | null {
+  if (!/^\d+$/.test(value)) return null;
+  const id = Number(value);
+  return Number.isSafeInteger(id) ? id : null;
+}
+
 export function resolveLocationByLabel(label: string): number {
   const trimmed = label.trim();
-  const matches = [...get(locations).values()].filter((loc) => labelsMatch(trimmed, loc.label));
+  const locs = get(locations);
+
+  const id = parseLocationId(trimmed);
+  if (id != null && locs.has(id)) {
+    return id;
+  }
+
+  const matches = [...locs.values()].filter((loc) => labelsMatch(trimmed, loc.label));
   if (matches.length === 1) return matches[0].id;
   if (matches.length > 1) throw new Error('Ambiguous location "' + label + '"');
   throw new Error('Unknown location "' + label + '"');
@@ -182,6 +196,11 @@ export function splitBulkFields(line: string): string[] {
   return fields;
 }
 
+/** Strip tabs from comma-separated lines; tabs are not field separators. */
+function prepareBulkLine(line: string): string {
+  return line.includes(',') ? line.replace(/\t/g, '') : line;
+}
+
 export function parseBulkLines(
   text: string,
   currentLocationId: number | null
@@ -193,7 +212,7 @@ export function parseBulkLines(
     const lineNum = i + 1;
     let parts: string[];
     try {
-      parts = splitBulkFields(lines[i]);
+      parts = splitBulkFields(prepareBulkLine(lines[i]));
     } catch {
       throw new Error('Line ' + lineNum + ': unclosed quote in label or location');
     }
@@ -204,8 +223,8 @@ export function parseBulkLines(
       continue;
     }
 
-    if (parts.length < 2 || parts.length > 3) {
-      throw new Error('Line ' + lineNum + ': expected label, location [, quantity]');
+    if (parts.length < 2 || parts.length > 4) {
+      throw new Error('Line ' + lineNum + ': expected label, location [, quantity [, notes]]');
     }
 
     const itemLabel = parts[0];
@@ -214,19 +233,32 @@ export function parseBulkLines(
     if (!locationLabel) throw new Error('Line ' + lineNum + ': missing location');
 
     let quantity = 1;
-    if (parts.length === 3) {
+    if (parts.length >= 3) {
       quantity = Number(parts[2]);
       if (!Number.isInteger(quantity) || quantity < 0) {
         throw new Error('Line ' + lineNum + ': invalid quantity');
       }
     }
 
+    const notes = parts.length === 4 && parts[3] ? parts[3] : null;
+
     parsed.push({
       label: itemLabel,
       location_id: resolveLocationByLabel(locationLabel),
       quantity,
+      notes,
     });
   }
 
   return parsed;
+}
+
+export function bulkItemsToPreviewRows(items: NewItemPayload[]): BulkPreviewRow[] {
+  const locs = get(locations);
+  return items.map((item) => ({
+    label: item.label,
+    location_label: locs.get(item.location_id)?.label ?? String(item.location_id),
+    quantity: item.quantity ?? 1,
+    notes: item.notes ?? null,
+  }));
 }

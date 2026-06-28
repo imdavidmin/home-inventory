@@ -8,7 +8,6 @@ import {
   fetchLocationItems,
   itemToPayload,
   loadLocations,
-  parseBulkLines,
   searchItems,
   updateItem,
 } from './api';
@@ -100,7 +99,7 @@ type MutationOptions = {
 
 async function withMutation(
   pendingMessage: string,
-  action: () => Promise<void>,
+  action: () => Promise<unknown>,
   successMessage: string,
   errorFallback: string,
   options: MutationOptions = {}
@@ -140,18 +139,9 @@ export function navigateToLocation(id: number | null): void {
   reloadGrid(id);
 }
 
-export async function addItemsFromText(text: string): Promise<void> {
-  const trimmed = text.trim();
-  if (!trimmed) {
+export async function addItemsFromText(items: NewItemPayload[]): Promise<void> {
+  if (!items.length) {
     setStatus('Enter at least one item', true);
-    return;
-  }
-
-  let items: NewItemPayload[];
-  try {
-    items = parseBulkLines(trimmed, get(currentLocationId));
-  } catch (err) {
-    setStatus(errorMessage(err, 'Invalid input'), true);
     return;
   }
 

@@ -26,6 +26,13 @@ export interface NewItemPayload {
   notes?: string | null;
 }
 
+export interface BulkPreviewRow {
+  label: string;
+  location_label: string;
+  quantity: number;
+  notes: string | null;
+}
+
 export interface LocationItemsResponse {
   location: Location;
   items: Item[];
