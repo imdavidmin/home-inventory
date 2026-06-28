@@ -202,6 +202,10 @@ function prepareBulkLine(line: string): string {
   return line.includes(',') ? line.replace(/\t/g, '') : line;
 }
 
+function isValidBulkQuantity(quantity: number): boolean {
+  return Number.isInteger(quantity) && (quantity === -1 || quantity >= 0);
+}
+
 export function parseBulkLines(
   text: string,
   currentLocationId: number | null
@@ -236,7 +240,7 @@ export function parseBulkLines(
     let quantity = 1;
     if (parts.length >= 3) {
       quantity = Number(parts[2]);
-      if (!Number.isInteger(quantity) || quantity < 0) {
+      if (!isValidBulkQuantity(quantity)) {
         throw new Error('Line ' + lineNum + ': invalid quantity');
       }
     }

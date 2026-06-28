@@ -5,7 +5,7 @@
   "addItems.hintFormatShort": "label, location",
   "addItems.hintFormatFull": "label, location, quantity",
   "addItems.hintFormatNotes": "label, location, quantity, notes",
-  "addItems.hintQuantityDefault": "Quantity defaults to 1.",
+  "addItems.hintQuantityDefault": "Quantity defaults to 1. Use -1 for uncountable items.",
   "addItems.hintQuotes": "Wrap labels, locations, or notes in double quotes when they contain commas, e.g.",
   "addItems.hintQuoteExample": "\"Breadboard, small\", 17",
   "addItems.hintLocationMatch": "Locations match by numeric ID or name (case-insensitive).",

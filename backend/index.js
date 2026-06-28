@@ -24,7 +24,11 @@ const CORS = {
       return Number.isInteger(n) && n > 0 ? n : null;
     },
     label: (v) => (typeof v === "string" ? v.trim() : ""),
-    quantity: (v) => (Number.isInteger(v) && v > 0 ? v : 1),
+    quantity: (v) => {
+      if (Number.isInteger(v) && v === -1) return -1;
+      if (Number.isInteger(v) && v > 0) return v;
+      return 1;
+    },
   };
   
   const db = {
