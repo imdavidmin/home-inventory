@@ -2,6 +2,8 @@ export interface Location {
   id: number;
   label: string;
   parent_id?: number | null;
+  item_count?: number;
+  sublocation_count?: number;
 }
 
 export interface Item {

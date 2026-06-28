@@ -81,7 +81,8 @@ export async function fetchLocationItems(locationId: number): Promise<ItemRow[]>
   if (data?.location?.id != null) {
     locations.update((m) => {
       const next = new Map(m);
-      next.set(data.location.id, data.location);
+      const existing = next.get(data.location.id);
+      next.set(data.location.id, { ...existing, ...data.location });
       return next;
     });
   }

@@ -15,6 +15,7 @@ export const searchQuery = writable('');
 export const searchScope = writable<SearchScope>('all');
 export const toasts = writable<Toast[]>([]);
 export const activeModal = writable<ModalName>(null);
+export const appPage = writable<'inventory' | 'locations'>('inventory');
 
 let nextToastId = 0;
 

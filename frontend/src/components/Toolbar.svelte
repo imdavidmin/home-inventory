@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AppMenu from './AppMenu.svelte';
   import ChildLocationCards from './ChildLocationCards.svelte';
   import {
     childLocations,
@@ -30,7 +31,8 @@
 </script>
 
 <header class="toolbar">
-  <nav class="breadcrumb" aria-label="Location">
+  <div class="toolbar-top">
+    <nav class="breadcrumb" aria-label="Location">
     {#each crumbs as crumb, index (crumb.id ?? 'root')}
       {#if index > 0}
         <span class="breadcrumb-sep" aria-hidden="true">/</span>
@@ -67,7 +69,9 @@
         ✏️
       </button>
     {/if}
-  </nav>
+    </nav>
+    <AppMenu />
+  </div>
 
   <div class="toolbar-row search-row">
     <input

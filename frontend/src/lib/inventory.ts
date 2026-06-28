@@ -11,8 +11,9 @@ import {
   searchItems,
   updateItem,
 } from './api';
-import { navigateTo, parseLocationIdFromPath } from './routing';
+import { navigateTo, parseAppRoute } from './routing';
 import {
+  appPage,
   closeModal,
   currentLocationId,
   rowData,
@@ -101,19 +102,27 @@ async function withMutation(
 
 export async function bootstrapApp(): Promise<void> {
   window.addEventListener('popstate', () => {
-    reloadGrid(parseLocationIdFromPath());
+    applyRoute(parseAppRoute());
   });
 
   try {
     await loadLocations();
-    await reloadGrid(parseLocationIdFromPath());
+    applyRoute(parseAppRoute());
   } catch (err) {
     setStatus(errorMessage(err, 'Failed to load locations'), true);
   }
 }
 
+function applyRoute(route: ReturnType<typeof parseAppRoute>): void {
+  appPage.set(route.page);
+  if (route.page === 'inventory') {
+    reloadGrid(route.locationId);
+  }
+}
+
 export function navigateToLocation(id: number | null): void {
   navigateTo(id);
+  appPage.set('inventory');
   reloadGrid(id);
 }
 

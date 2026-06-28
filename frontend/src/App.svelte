@@ -4,6 +4,7 @@
   import ItemGrid from './components/ItemGrid.svelte';
   import FabMenu from './components/FabMenu.svelte';
   import ToastStack from './components/ToastStack.svelte';
+  import LocationsPage from './components/LocationsPage.svelte';
   import AddItemsModal from './components/AddItemsModal.svelte';
   import EditItemModal from './components/EditItemModal.svelte';
   import MoveItemModal from './components/MoveItemModal.svelte';
@@ -11,6 +12,7 @@
   import EditLocationModal from './components/EditLocationModal.svelte';
   import {
     activeModal,
+    appPage,
     closeModal,
     currentLocation,
     currentLocationId,
@@ -48,15 +50,21 @@
 </script>
 
 <div class="app-shell">
-  <Toolbar onsearchinput={onSearchInput} ondelete={deleteSelectedItem} onclearsearch={clearSearch} />
+  {#if $appPage === 'inventory'}
+    <Toolbar onsearchinput={onSearchInput} ondelete={deleteSelectedItem} onclearsearch={clearSearch} />
 
-  <main class="app-main">
-    <ItemGrid
-      rowData={$rowData}
-      onselect={(item) => selectedItem.set(item)}
-      onlocationclick={navigateToLocation}
-    />
-  </main>
+    <main class="app-main">
+      <ItemGrid
+        rowData={$rowData}
+        onselect={(item) => selectedItem.set(item)}
+        onlocationclick={navigateToLocation}
+      />
+    </main>
+
+    <FabMenu onadditems={() => openModal('add')} onnewlocation={() => openModal('newLocation')} />
+  {:else}
+    <LocationsPage />
+  {/if}
 </div>
 
 <AddItemsModal
@@ -96,7 +104,5 @@
   onclose={closeModal}
   onsubmit={editCurrentLocation}
 />
-
-<FabMenu onadditems={() => openModal('add')} onnewlocation={() => openModal('newLocation')} />
 
 <ToastStack />
