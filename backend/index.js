@@ -59,6 +59,19 @@ const CORS = {
     return loc;
   };
 
+  const formatLocationListEntry = ({
+    id,
+    label,
+    parent_id,
+    item_count,
+    sublocation_count,
+  }) => {
+    const loc = formatLocation({ id, label, parent_id });
+    loc.item_count = Number(item_count) || 0;
+    loc.sublocation_count = Number(sublocation_count) || 0;
+    return loc;
+  };
+
   const parseParentId = (value) => {
     if (value == null) return null;
     const id = Validators.id(value);
@@ -86,9 +99,16 @@ const CORS = {
   async function listLocations(req, env) {
     const r = await db.all(
       env,
-      "SELECT id,label,parent_id FROM locations ORDER BY label",
+      `SELECT l.id, l.label, l.parent_id,
+              COUNT(DISTINCT i.id) AS item_count,
+              COUNT(DISTINCT c.id) AS sublocation_count
+       FROM locations l
+       LEFT JOIN items i ON i.location_id = l.id
+       LEFT JOIN locations c ON c.parent_id = l.id
+       GROUP BY l.id, l.label, l.parent_id
+       ORDER BY l.label`,
     );
-    return json(r.results.map(formatLocation));
+    return json(r.results.map(formatLocationListEntry));
   }
   
   async function createLocation(req, env) {

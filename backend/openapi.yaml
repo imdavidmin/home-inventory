@@ -264,6 +264,12 @@ components:
         parent_id:
           type: integer
           description: Omitted when the location has no parent
+        item_count:
+          type: integer
+          description: Number of items directly in this location (GET /locations only)
+        sublocation_count:
+          type: integer
+          description: Number of child locations (GET /locations only)
 
     Item:
       type: object
