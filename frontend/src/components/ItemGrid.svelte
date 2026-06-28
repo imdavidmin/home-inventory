@@ -74,7 +74,7 @@
 <style>
   .grid {
     width: 100%;
-    height: calc(100vh - 11rem);
-    min-height: 16rem;
+    height: 100%;
+    min-height: 12rem;
   }
 </style>

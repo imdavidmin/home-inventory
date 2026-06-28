@@ -1,50 +1,73 @@
 <script lang="ts">
+  import ChildLocationCards from './ChildLocationCards.svelte';
   import {
+    childLocations,
     currentLocationId,
+    locationBreadcrumb,
     openModal,
-    pageTitle,
-    parentButtonTitle,
     searchQuery,
     searchScope,
     selectedItem,
-    status,
   } from '$lib/stores';
-  import { reloadGrid } from '$lib/inventory';
+  import { navigateToLocation, reloadGrid } from '$lib/inventory';
+  import { pathForLocation } from '$lib/routing';
 
   interface Props {
     onsearchinput?: () => void;
-    onparentclick?: () => void;
     ondelete?: () => void;
     onclearsearch?: () => void;
   }
 
-  let { onsearchinput, onparentclick, ondelete, onclearsearch }: Props = $props();
+  let { onsearchinput, ondelete, onclearsearch }: Props = $props();
+
+  const crumbs = $derived($locationBreadcrumb);
+  const showChildLocations = $derived(!$searchQuery.trim());
+
+  function breadcrumbNavigate(event: MouseEvent, id: number | null) {
+    event.preventDefault();
+    navigateToLocation(id);
+  }
 </script>
 
 <header class="toolbar">
-  <div class="toolbar-row">
-    <button
-      type="button"
-      title={$parentButtonTitle}
-      disabled={$currentLocationId == null}
-      onclick={onparentclick}
-    >
-      ↑ Parent
-    </button>
-    <div class="title-row">
-      <h1>{$pageTitle}</h1>
-      {#if $currentLocationId != null}
-        <button
-          type="button"
-          class="btn-icon"
-          title="Edit location"
-          onclick={() => openModal('editLocation')}
-        >
-          ✏️
-        </button>
+  <nav class="breadcrumb" aria-label="Location">
+    {#each crumbs as crumb, index (crumb.id ?? 'root')}
+      {#if index > 0}
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
       {/if}
-    </div>
-  </div>
+      {#if index === crumbs.length - 1}
+        <span class="breadcrumb-current" aria-current="page">
+          {#if crumb.id == null}
+            <span aria-label="All locations">🏠</span>
+          {:else}
+            {crumb.label}
+          {/if}
+        </span>
+      {:else}
+        <a
+          href={pathForLocation(crumb.id)}
+          class="breadcrumb-link"
+          onclick={(event) => breadcrumbNavigate(event, crumb.id)}
+        >
+          {#if crumb.id == null}
+            <span aria-label="All locations">🏠</span>
+          {:else}
+            {crumb.label}
+          {/if}
+        </a>
+      {/if}
+    {/each}
+    {#if $currentLocationId != null}
+      <button
+        type="button"
+        class="btn-icon breadcrumb-edit"
+        title="Edit location"
+        onclick={() => openModal('editLocation')}
+      >
+        ✏️
+      </button>
+    {/if}
+  </nav>
 
   <div class="toolbar-row search-row">
     <input
@@ -75,6 +98,10 @@
     {/if}
   </div>
 
+  {#if showChildLocations}
+    <ChildLocationCards locations={$childLocations} onselect={navigateToLocation} />
+  {/if}
+
   <div class="toolbar-row action-bar">
     <button type="button" disabled={!$selectedItem} onclick={() => openModal('edit')}>
       ✏️ Edit
@@ -86,6 +113,4 @@
       🗑️ Delete
     </button>
   </div>
-
-  <p class="status" class:status-error={$status.error} aria-live="polite">{$status.message}</p>
 </header>

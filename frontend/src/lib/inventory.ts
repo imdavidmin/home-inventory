@@ -29,16 +29,6 @@ function effectiveScope(locationId: number | null, scope: SearchScope): SearchSc
   return scope;
 }
 
-function searchScopeLabel(
-  searching: boolean,
-  scope: SearchScope,
-  locationId: number | null
-): string {
-  if (!searching) return '';
-  if (scope === 'location' && locationId != null) return ' in this location';
-  return ' everywhere';
-}
-
 export async function fetchGridData(
   locationId: number | null,
   query: string,
@@ -57,15 +47,6 @@ export async function fetchGridData(
   return fetchLocationItems(locationId);
 }
 
-export function itemCountLabel(
-  count: number,
-  searching: boolean,
-  scope: SearchScope,
-  locationId: number | null
-): string {
-  return `${count} ${plural(count, 'item')}${searchScopeLabel(searching, scope, locationId)}`;
-}
-
 export async function reloadGrid(locationId?: number | null): Promise<void> {
   const locId = locationId !== undefined ? locationId : get(currentLocationId);
   const query = get(searchQuery);
@@ -76,13 +57,11 @@ export async function reloadGrid(locationId?: number | null): Promise<void> {
   }
 
   currentLocationId.set(locId);
-  setStatus(query.trim() ? 'Searching…' : 'Loading…');
 
   try {
     const data = await fetchGridData(locId, query, scope);
     selectedItem.set(null);
     rowData.set(data);
-    setStatus(itemCountLabel(data.length, query.trim().length > 0, scope, locId));
   } catch (err) {
     console.error(err);
     selectedItem.set(null);
@@ -125,7 +104,6 @@ export async function bootstrapApp(): Promise<void> {
     reloadGrid(parseLocationIdFromPath());
   });
 
-  setStatus('Loading locations…');
   try {
     await loadLocations();
     await reloadGrid(parseLocationIdFromPath());

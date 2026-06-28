@@ -24,7 +24,19 @@ body {
   background: var(--color-bg);
 }
 
+#app {
+  height: 100vh;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 main.app-main {
+  flex: 1;
+  min-height: 0;
   padding: 0.75rem 1.25rem 1.25rem;
 }
 
@@ -41,16 +53,39 @@ main.app-main {
   flex-wrap: wrap;
 }
 
-.title-row {
+.breadcrumb {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
+  margin: 0;
+  font-size: 1rem;
 }
 
-.toolbar h1 {
-  margin: 0;
+.breadcrumb-link {
+  font: inherit;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.breadcrumb-link:hover {
+  color: var(--color-accent-text);
+}
+
+.breadcrumb-sep {
+  color: var(--color-muted);
+  user-select: none;
+}
+
+.breadcrumb-current {
   font-size: 1.25rem;
   font-weight: 600;
+}
+
+.breadcrumb-edit {
+  margin-left: 0.15rem;
 }
 
 .toolbar button.btn-icon {
@@ -119,17 +154,6 @@ main.app-main {
 .toolbar button.btn-danger:not(:disabled) {
   color: var(--color-danger);
   border-color: var(--color-danger-border);
-}
-
-.status {
-  margin: 0.5rem 0 0;
-  min-height: 1.25rem;
-  font-size: 0.85rem;
-  color: var(--color-muted);
-}
-
-.status-error {
-  color: var(--color-danger);
 }
 
 .cell-link {

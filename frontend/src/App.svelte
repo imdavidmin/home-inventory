@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import Toolbar from './components/Toolbar.svelte';
   import ItemGrid from './components/ItemGrid.svelte';
   import FabMenu from './components/FabMenu.svelte';
+  import ToastStack from './components/ToastStack.svelte';
   import AddItemsModal from './components/AddItemsModal.svelte';
   import EditItemModal from './components/EditItemModal.svelte';
   import MoveItemModal from './components/MoveItemModal.svelte';
@@ -15,7 +15,6 @@
     currentLocation,
     currentLocationId,
     openModal,
-    parentLocationId,
     rowData,
     searchQuery,
     selectedItem,
@@ -45,27 +44,20 @@
     reloadGrid();
   }
 
-  function onParentClick() {
-    navigateToLocation(get(parentLocationId));
-  }
-
   onMount(() => bootstrapApp());
 </script>
 
-<Toolbar
-  onsearchinput={onSearchInput}
-  onparentclick={onParentClick}
-  ondelete={deleteSelectedItem}
-  onclearsearch={clearSearch}
-/>
+<div class="app-shell">
+  <Toolbar onsearchinput={onSearchInput} ondelete={deleteSelectedItem} onclearsearch={clearSearch} />
 
-<main class="app-main">
-  <ItemGrid
-    rowData={$rowData}
-    onselect={(item) => selectedItem.set(item)}
-    onlocationclick={navigateToLocation}
-  />
-</main>
+  <main class="app-main">
+    <ItemGrid
+      rowData={$rowData}
+      onselect={(item) => selectedItem.set(item)}
+      onlocationclick={navigateToLocation}
+    />
+  </main>
+</div>
 
 <AddItemsModal
   open={$activeModal === 'add'}
@@ -106,3 +98,5 @@
 />
 
 <FabMenu onadditems={() => openModal('add')} onnewlocation={() => openModal('newLocation')} />
+
+<ToastStack />
